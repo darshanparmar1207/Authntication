@@ -2,6 +2,7 @@ const cookieParser = require('cookie-parser')
 const express = require('express')
 const userModel = require('./models/user')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const port = 3000
 const app = express()
@@ -19,7 +20,7 @@ app.get('/', (req, res) =>{
     res.render('index')
 })
 
-// Create User
+// Registeer user
 app.post('/create', async (req, res) => {
     let { username, email, password, age } = req.body;
 
@@ -32,9 +33,40 @@ app.post('/create', async (req, res) => {
             password: hash,
             age
         })
-    res.send(createduser)
+
+       let token = jwt.sign({ email}, 'secretkey')
+       res.cookie('token', token)
+       res.send(createduser)
+    })
+})
+
+})
+
+// Redirect ot Login Page 
+app.get('/login', async function(req, res) {
+    res.render('login')
+})
+
+// Login user
+app.post('/login', async function(req, res) {
+    let user = await userModel.findOne({email: req.body.email});
+    if(!user) return res.send('Something Went Wrong')
+
+        bcrypt.compare(req.body.password, user.password , function(err, result) {
+            if(result){
+                let token = jwt.sign({email: user.email}, 'secretkey')
+                res.cookie('token', token)
+                res.send("Login Success")
+            }
+                else 
+                    res.send("Something Went Wrong")
         })
-    });
+})
+
+// Logout User
+app.get('/logout', (req, res) => {
+    res.cookie('token', '')
+    res.redirect('/')
 })
 
 
