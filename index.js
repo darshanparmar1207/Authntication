@@ -71,4 +71,4 @@ app.get('/logout', (req, res) => {
 
 
 app.listen(3000)
-console.log(`Example app listening on port ${port}!`)
+console.log(`Authntication on port ${port}!`)
